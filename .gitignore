@@ -1,0 +1,2 @@
+# Local-only: contains the source student's identifiers. Never push.
+.denylist.local
