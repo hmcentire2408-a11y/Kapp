@@ -68,11 +68,13 @@ Owner of: `corpus/`, `evals/`, `scripts/scrub_check.py`.
 
 ## Blocked (needs the user)
 
-| Item | Why |
+_Nothing blocked._ All three prior items were settled on 2026-09-15 and moved to `CLAUDE.md` §7:
+
+| Item | Resolution |
 |---|---|
-| Web app scaffold | Stack not chosen. |
-| Web search on/off in the app | Affects prompt §2 behavior; prompt currently handles both. |
-| Fit dataset beyond T20 | Scope decision. |
+| Web app scaffold | Next.js + Supabase, delegated to Agent A. Scaffold without asking. |
+| Web search on/off | On, but deprioritized — policy-fact verification only. Master prompt §2 updated. |
+| Fit dataset beyond T20 | No. Stays at the T20. |
 
 ---
 
@@ -88,3 +90,4 @@ _none yet_
 
 - 2026-09-15 · A · Created `CLAUDE.md`, `TASKS.md`, `prompts/master-prompt.md`. Fetched and checked the user's 7 MVV entries: 20/26 quotes verbatim on first pass.
 - 2026-09-15 · A · A2–A6 done: `data/school-fit/{schools.json,school-fit.md,school-fit.xlsx}` for all 20 T20 schools, `scripts/build_fit.py`, and the Fit section of the master prompt.
+- 2026-09-15 · user · Three Blocked items resolved (stack delegated / web search on-but-deprioritized / fit dataset stays at T20). Second privacy pass: source-repo attribution and carried-over personal examples removed from the prompt and CLAUDE.md.

@@ -18,7 +18,7 @@ Kapp is a generalization of a single-student Claude Code system at `../college-a
 
 ### The core idea: fit over generic impressiveness
 
-The user's standing instruction, and the main change from the source system:
+A standing project rule, and the main change from the source system:
 
 > A student should not be predicted out of a set of schools (e.g., Harvard, Stanford) wholesale because they don't seem like "that sort of student" or don't seem impressive enough for the tier. Bias fit — evidence that the student's values and academic interests match what a **specific** school professes and looks for — over a generic perception of what impresses a tier.
 
@@ -43,9 +43,9 @@ system prompt (prompts/master-prompt.md)          ← static, cached
 ```
 
 - **Model:** Claude Opus 5 (`claude-opus-5`), adaptive thinking, Anthropic SDK, Messages API with tool use. Citations enabled on document blocks so every claim maps to a quoted source passage.
-- **Web verification:** policy facts (deadlines, prompts, testing, aid, rec requirements) are never answered from model memory; verified live via web search/fetch restricted to official domains, or refused.
+- **Web verification:** enabled but deprioritized. Policy facts (deadlines, prompts, testing, aid, rec requirements) are never answered from model memory; verified live via web search/fetch restricted to official domains, or refused. Web search is for those facts only — never a general research path, and never used to re-derive what the cached corpus already covers.
 - **Isolation:** exactly one student's documents per request. Never two. The three users are classmates applying to overlapping schools.
-- **Stack for the web app: NOT DECIDED.** Next.js + Supabase was suggested, not approved. Do not scaffold an app until the user decides (tracked in `TASKS.md` → Blocked).
+- **Stack for the web app: Next.js + Supabase**, delegated to Agent A. Scaffolding is unblocked; pick sensible defaults and don't bring stack questions back to the user.
 
 ---
 
@@ -116,11 +116,12 @@ These carry over from the source system because they are what makes it trustwort
 | 2026-09-15 | Three NCSSM-Morganton users; Morganton context carries over; no scale. |
 | 2026-09-15 | Fit to a specific school's professed values is weighted above generic tier-level impressiveness. |
 | 2026-09-15 | The fit dataset covers the T20 national universities as defined in the source repo's outcome model (`school-context/ncssm-outcomes-analysis-4yr.md:16-35`): Duke, Cornell, Columbia, Yale, Princeton, Penn, Johns Hopkins, Harvard, UC Berkeley, Vanderbilt, Stanford, Rice, Brown, Dartmouth, MIT, UCLA, Notre Dame, Caltech, Northwestern, UChicago. |
-| 2026-09-15 | Fit dataset format follows the user's MVV template (Mission / Values / Who are their people? / Sources), extended with an admissions-office "what we look for" field, since the office that reads files is stronger evidence of admissions preference than a university-wide mission statement. |
+| 2026-09-15 | Fit dataset format follows the MVV template (Mission / Values / Who are their people? / Sources), extended with an admissions-office "what we look for" field, since the office that reads files is stronger evidence of admissions preference than a university-wide mission statement. |
 | 2026-09-15 | Kapp never writes student prose. |
+| 2026-09-15 | Web app stack is Next.js + Supabase; the choice is delegated to Agent A and is not a user decision. |
+| 2026-09-15 | Web search is allowed but deprioritized — policy-fact verification only, never general research. |
+| 2026-09-15 | Fit dataset stays at the T20; no expansion to LACs or in-state schools for now. |
 
 ## 8. Open questions for the user
 
-- Web app stack and hosting.
-- Whether Kapp should enable web search (the prompt handles both cases).
-- Whether to extend the fit dataset beyond the T20 (e.g., the students' actual lists: LACs, Georgetown, UNC, NC State).
+_None open._ Stack, web search and fit-dataset scope were all settled on 2026-09-15 — see §7. Don't reopen them without new evidence.
