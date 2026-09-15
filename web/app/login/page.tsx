@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { safeNext } from "@/lib/safe-next";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 function LoginForm() {
@@ -28,7 +29,7 @@ function LoginForm() {
       setError(error.message);
       return;
     }
-    router.push(params.get("next") || "/");
+    router.push(safeNext(params.get("next")));
     router.refresh();
   }
 
