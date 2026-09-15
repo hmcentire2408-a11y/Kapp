@@ -33,6 +33,10 @@ Owner of: `prompts/`, `data/school-fit/`, `scripts/build_fit.py`.
 | A4 | Admissions "what we look for" field for all 20 | done | 17 of 20 have admissions-office language; Rice and UCLA are `quoted-unchecked` (fetch tool, not byte-checked); Columbia, Dartmouth and UChicago are open gaps. |
 | A5 | Build outputs | done | `scripts/build_fit.py` writes `school-fit.md` and `school-fit.xlsx`. Needs openpyxl: use `.venv/bin/python` (venv created; `.venv/` is gitignored). |
 | A6 | Add **Fit** section to master prompt | done | Added as "Fit — and the tier-level verdict you must not give" in §5, with the four verdict shapes: documented fit / plausible but unevidenced / mismatch / unknown. |
+| A7 | Web app scaffold | done | `web/` builds clean (`npm run build`). Next.js 15 + Supabase auth, per-user documents under RLS, streaming chat with citations, context panel showing what loaded and what is missing. |
+| A8 | Supabase project provisioning | blocked | Needs the user: create the project, run `web/supabase/schema.sql`, add the three accounts, put the URL + anon key in `web/.env.local`. |
+| A9 | Conversation persistence | todo | `conversations` / `messages` tables exist in the schema but the UI does not write to them yet — history is lost on refresh. |
+| A10 | Deploy | blocked | Needs the user: hosting account + environment variables. See `web/README.md` → Deploying. |
 
 ---
 
@@ -68,13 +72,15 @@ Owner of: `corpus/`, `evals/`, `scripts/scrub_check.py`.
 
 ## Blocked (needs the user)
 
-_Nothing blocked._ All three prior items were settled on 2026-09-15 and moved to `CLAUDE.md` §7:
+Settled on 2026-09-15 (now in `CLAUDE.md` §7): stack delegated to Agent A · web search on but deprioritized · fit dataset stays at the T20.
 
-| Item | Resolution |
+Still needs the user:
+
+| Item | Why |
 |---|---|
-| Web app scaffold | Next.js + Supabase, delegated to Agent A. Scaffold without asking. |
-| Web search on/off | On, but deprioritized — policy-fact verification only. Master prompt §2 updated. |
-| Fit dataset beyond T20 | No. Stays at the T20. |
+| Supabase project (A8) | Only the user can create the project and the three accounts. The app cannot run until the URL and anon key are in `web/.env.local`. |
+| Hosting (A10) | Account + environment variables. |
+| `corpus/` (B1/B2) | The app runs without it but tells the model the LIBRARY and MORGANTON sections are empty. |
 
 ---
 
@@ -91,3 +97,4 @@ _none yet_
 - 2026-09-15 · A · Created `CLAUDE.md`, `TASKS.md`, `prompts/master-prompt.md`. Fetched and checked the user's 7 MVV entries: 20/26 quotes verbatim on first pass.
 - 2026-09-15 · A · A2–A6 done: `data/school-fit/{schools.json,school-fit.md,school-fit.xlsx}` for all 20 T20 schools, `scripts/build_fit.py`, and the Fit section of the master prompt.
 - 2026-09-15 · user · Three Blocked items resolved (stack delegated / web search on-but-deprioritized / fit dataset stays at T20). Second privacy pass: source-repo attribution and carried-over personal examples removed from the prompt and CLAUDE.md.
+- 2026-09-15 · A · `web/` scaffolded and building: Supabase auth + RLS, per-user document management, streaming chat with document citations, prompt caching at three breakpoints, context-gap reporting. Corrected an earlier misread — the app is multi-user; only agent collaboration is deferred.

@@ -1,9 +1,20 @@
 # Local-only: contains the source student's identifiers. Never push.
 .denylist.local
 
+# Secrets
+.env
+.env.local
+web/.env.local
+
 # Local environment and OS cruft
 .venv/
 .DS_Store
 **/.DS_Store
 __pycache__/
 *.pyc
+
+# Node / Next
+node_modules/
+.next/
+next-env.d.ts
+*.tsbuildinfo

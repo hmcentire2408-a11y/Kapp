@@ -45,7 +45,8 @@ system prompt (prompts/master-prompt.md)          ← static, cached
 - **Model:** Claude Opus 5 (`claude-opus-5`), adaptive thinking, Anthropic SDK, Messages API with tool use. Citations enabled on document blocks so every claim maps to a quoted source passage.
 - **Web verification:** enabled but deprioritized. Policy facts (deadlines, prompts, testing, aid, rec requirements) are never answered from model memory; verified live via web search/fetch restricted to official domains, or refused. Web search is for those facts only — never a general research path, and never used to re-derive what the cached corpus already covers.
 - **Isolation:** exactly one student's documents per request. Never two. The three users are classmates applying to overlapping schools.
-- **Stack for the web app: Next.js + Supabase**, delegated to Agent A. Scaffolding is unblocked; pick sensible defaults and don't bring stack questions back to the user.
+- **Stack: Next.js 15 (App Router) + Supabase**, in `web/`. Auth is Supabase email/password; data is Postgres with row-level security. See `web/README.md`.
+- **Isolation is enforced in the database, not in app code.** Every table's RLS policy is `auth.uid() = user_id`; the server resolves identity with `supabase.auth.getUser()` (revalidates the JWT), never from a request parameter. Do not add a code path that takes a user id from the client.
 
 ---
 
@@ -61,6 +62,10 @@ data/
 scripts/
   build_fit.py                builds data/school-fit outputs             [owner: Agent A]
   scrub_check.py              denylist scan over corpus/                 [owner: Agent B]
+web/                          Next.js app — auth, documents, chat        [owner: Agent A]
+  supabase/schema.sql         tables + row-level security policies
+  lib/context.ts              per-user context assembly
+  lib/anthropic.ts            request construction, caching, tools
 corpus/
   library/                    scrubbed research + method docs            [owner: Agent B]
   morganton/                  scrubbed school context                    [owner: Agent B]
@@ -121,6 +126,8 @@ These carry over from the source system because they are what makes it trustwort
 | 2026-09-15 | Web app stack is Next.js + Supabase; the choice is delegated to Agent A and is not a user decision. |
 | 2026-09-15 | Web search is allowed but deprioritized — policy-fact verification only, never general research. |
 | 2026-09-15 | Fit dataset stays at the T20; no expansion to LACs or in-state schools for now. |
+| 2026-09-15 | The app is multi-user from the start: three students, separate logins, one student's file per session. Agent collaboration on the codebase is deferred and will be announced. |
+| 2026-09-15 | Student documents live in Supabase Postgres under RLS, not on disk. No public sign-up; accounts are created in the Supabase dashboard. |
 
 ## 8. Open questions for the user
 
