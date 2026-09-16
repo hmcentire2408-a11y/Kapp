@@ -53,8 +53,24 @@ function loadDir(dir, corpus) {
 }
 
 const prompt = path.join(ROOT, "prompts", "master-prompt.md");
+
+// The deploy unit is web/, so on a CLI deploy the repo root is not uploaded and
+// the sources are absent. generated/corpus.json is committed for exactly that
+// case: if the sources are missing but a previously generated bundle is present,
+// keep it. Only fail when there is neither — that is a genuinely broken build.
 if (!fs.existsSync(prompt)) {
-  console.error(`\nFATAL: master prompt not found at ${prompt}`);
+  if (fs.existsSync(OUT)) {
+    const prev = JSON.parse(fs.readFileSync(OUT, "utf8"));
+    console.log(
+      `corpus: sources not present (deploying web/ alone). Keeping the committed ` +
+        `bundle: ${prev.docs.length} documents, built ${prev.builtAt}.`,
+    );
+    process.exit(0);
+  }
+  console.error(
+    `\nFATAL: no corpus sources at ${ROOT} and no committed generated/corpus.json.\n` +
+      `Run this from a full checkout to regenerate it, then commit the result.`,
+  );
   process.exit(1);
 }
 
