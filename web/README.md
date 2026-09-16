@@ -1,12 +1,12 @@
 # Kapp — web app
 
-Next.js 15 (App Router) + Supabase. Three students sign in separately; each
-session assembles exactly one student's file.
+Next.js 15 (App Router) + Supabase. Users sign in separately; each session
+assembles exactly one user's file.
 
 ## How isolation works
 
 `CLAUDE.md` §2 and `prompts/master-prompt.md` §7 require that one request never
-carries two students' documents. That is enforced in three places, so a bug in
+carries two users' documents. That is enforced in three places, so a bug in
 any one of them is not sufficient to leak:
 
 1. **Row-level security.** Every table in `supabase/schema.sql` has RLS on and a
@@ -23,9 +23,9 @@ RLS is what protects the data.
 
 ## Setup
 
-1. **Create the Supabase project** (free tier is enough for three users).
+1. **Create the Supabase project** (the free tier is ample for a handful of users).
 2. **Run the schema.** SQL Editor → paste `supabase/schema.sql` → Run.
-3. **Create the three accounts.** Authentication → Users → Add user, with
+3. **Create the accounts.** Authentication → Users → Add user, with
    "Auto Confirm User" checked. There is no public sign-up by design.
 4. **Configure the app:**
    ```bash

@@ -9,7 +9,7 @@ import type { ContextStatus, Corpus, LoadedDoc } from "./types";
  * traced output. A static import ships with the bundle.
  */
 
-/** Library + Morganton + school fit. Same bytes for all three users. */
+/** Library + Morganton + school fit. Same bytes for every user. */
 export function loadSharedCorpus(): { docs: LoadedDoc[]; warnings: string[] } {
   return {
     docs: corpus.docs as LoadedDoc[],

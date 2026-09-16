@@ -13,9 +13,9 @@ changes here, change it there too.
 | File | Title as the prompt names it | Tier | Provenance |
 |---|---|---|---|
 | `library/harvard-reading-procedures.md` | Harvard Reading Procedures, Class of 2023 | `H` | SFFA trial exhibit, recovered from a PDF archive. Text layer only. |
-| `library/making-a-pecan-pie.md` | "Making a Pecan Pie" | `P` | Sukumar, Metoyer & He, CSCW 2018. Text layer only. |
+| `library/making-a-pecan-pie.md` | "Making a Pecan Pie" | `P` | Sukumar, Metoyer & He, CSCW 2018. **Findings digest with full citation — not the paper.** ACM copyright; this remote is public. |
 | `library/ao-account-digest.md` | AO account digest | `W/A` | Digest of two pseudonymous former AOs. |
-| `library/ao-counselor-talk.md` | Former-AO/counselor talk digest | `C` | Third-party transcript digest. |
+| `library/ao-counselor-talk.md` | Former-AO/counselor talk digest | `C` | **Claims digest, paraphrased — not the transcript.** A third party's own words; source marked for private use. |
 | `library/readers-lens.md` | The Reader's Lens | `Method` | Essay evaluation method. |
 | `library/activity-checker-lens.md` | Activity Checker Lens | `Method` | Activity/honors screens. |
 | `library/conflicts-ledger.md` | Conflicts Ledger | `Method` | C1-C8 named contradictions with confidence levels. |
@@ -29,13 +29,14 @@ changes here, change it there too.
 - dropped page-image pointer (1x)
 
 **`library/making-a-pecan-pie.md`**
-- dropped page-image pointer (1x)
+- replaced the full 1,204-line paper text with a 74-line findings digest plus citation (ACM copyright, public remote)
 
 **`library/ao-account-digest.md`**
 - Nothing. Scanned clean — no source-student content present.
 
 **`library/ao-counselor-talk.md`**
-- Nothing. Scanned clean — no source-student content present.
+- replaced the 819-line verbatim transcript with a 65-line paraphrased claims digest
+- dropped promotional material, pricing, audience anecdotes, and identifying detail about the speaker's family and individual students
 
 **`library/readers-lens.md`**
 - de-personalised one possessive reference to the source student (1x)

@@ -6,15 +6,15 @@ Two Claude Code agents work in this repository **at the same time**, in the same
 
 ## 1. What Kapp is
 
-Kapp is an **LLM college admissions evaluator** for **three seniors at NCSSM-Morganton** (North Carolina School of Science and Mathematics, Morganton campus; graduating class of 2027). It is a private tool, not a product: no scale, no billing, no public users.
+Kapp is an **LLM college admissions evaluator** for a small private group of students at a STEM residential high school. It is a private tool, not a product: no scale, no billing, no public users.
 
 A student uploads their own material (transcript, activities, essays, recommender notes, school list). Kapp reads it together with a fixed **research library** on how selective admissions offices actually read files, the **Morganton school context** (profile + outcome history), and a **school-fit dataset**, and responds as a top-tier private consultant would: grounded, specific, candid.
 
 **Kapp does evaluation only.** No deadline tracking, no accountability tiers, no commitment check-ins. Those existed in the system Kapp was derived from and were deliberately dropped.
 
-### Where it comes from
+### Scope
 
-Kapp is a generalization of a single-student Claude Code system at `../college-apps-2027` (the **source repo**). That repo is **personal**: it contains one student's transcript, essays, private journal, family financial circumstances, and recommender notes. Kapp reuses its *method* and *research*, never its personal content. See §4.
+Kapp generalizes an earlier single-user system kept in a separate private repository. That repository holds personal application material and is never a source for anything committed here — Kapp reuses its *method* and *research* only. See §4.
 
 ### The core idea: fit over generic impressiveness
 
@@ -44,7 +44,7 @@ system prompt (prompts/master-prompt.md)          ← static, cached
 
 - **Model:** Claude Opus 5 (`claude-opus-5`), adaptive thinking, Anthropic SDK, Messages API with tool use. Citations enabled on document blocks so every claim maps to a quoted source passage.
 - **Web verification:** enabled but deprioritized. Policy facts (deadlines, prompts, testing, aid, rec requirements) are never answered from model memory; verified live via web search/fetch restricted to official domains, or refused. Web search is for those facts only — never a general research path, and never used to re-derive what the cached corpus already covers.
-- **Isolation:** exactly one student's documents per request. Never two. The three users are classmates applying to overlapping schools.
+- **Isolation:** exactly one user's documents per request. Never two. Users may be applying to overlapping schools, so this is enforced in the database, not merely in app code.
 - **Stack: Next.js 15 (App Router) + Supabase**, in `web/`. Auth is Supabase email/password; data is Postgres with row-level security. See `web/README.md`.
 - **Isolation is enforced in the database, not in app code.** Every table's RLS policy is `auth.uid() = user_id`; the server resolves identity with `supabase.auth.getUser()` (revalidates the JWT), never from a request parameter. Do not add a code path that takes a user id from the client.
 
@@ -83,9 +83,9 @@ Directories that don't exist yet are created by their owner.
 
 1. **The source repo is read-only.** Never write to `../college-apps-2027`.
 2. **Only the files listed in `TASKS.md` may be copied from the source repo**, and only after scrubbing. Never copy anything from its `applicant/`, `state/`, `planning/` (except the activity lens), `essays/` (except the essay lens), `data/`, `scripts/build_tracker.py`, `STATUS.md`, `UPDATE-PROMPT.md`, `college-tracker.xlsx`, or its `CLAUDE.md`.
-3. **Scrubbing means removing** anything about the source-repo student: names of their teachers/recommenders, activities, honors, scores, GPA references phrased as "the applicant's", prior school, home town, finances, family events, school list ("confirmed 15", "near list"), and any path into their personal files (`applicant/…`, `state/…`, `planning/…`, `STATUS.md`). Keep the method, the data, and the Morganton-wide statistics.
-4. **Nothing personal in git.** This repo has a GitHub remote (`hmcentire2408-a11y/Kapp`) visible to the other users. Agents do not commit or push; the user does.
-5. **Fictional test students only.** Eval profiles must not be modeled on any of the three real users.
+3. **Scrubbing means removing** anything identifying an individual from the source repository, and any path into it. `scripts/scrub_check.py` holds the checks; the term list it reads is gitignored and stays that way. Keep the method, the research, and school-wide statistics.
+4. **Nothing personal in git, and nothing under third-party copyright.** This repository has a public GitHub remote. Assume anything committed is world-readable and indexed. Third-party research is carried as citation plus findings digest, never as reproduced full text.
+5. **Fictional test students only.** Eval profiles must not be modeled on any real user.
 
 ---
 
@@ -118,7 +118,7 @@ These carry over from the source system because they are what makes it trustwort
 | Date | Decision |
 |---|---|
 | 2026-09-15 | Kapp is evaluation-only; accountability/deadline machinery from the source repo is dropped. |
-| 2026-09-15 | Three NCSSM-Morganton users; Morganton context carries over; no scale. |
+| 2026-09-15 | Small private user group; school context carries over; no scale. |
 | 2026-09-15 | Fit to a specific school's professed values is weighted above generic tier-level impressiveness. |
 | 2026-09-15 | The fit dataset covers the T20 national universities as defined in the source repo's outcome model (`school-context/ncssm-outcomes-analysis-4yr.md:16-35`): Duke, Cornell, Columbia, Yale, Princeton, Penn, Johns Hopkins, Harvard, UC Berkeley, Vanderbilt, Stanford, Rice, Brown, Dartmouth, MIT, UCLA, Notre Dame, Caltech, Northwestern, UChicago. |
 | 2026-09-15 | Fit dataset format follows the MVV template (Mission / Values / Who are their people? / Sources), extended with an admissions-office "what we look for" field, since the office that reads files is stronger evidence of admissions preference than a university-wide mission statement. |
@@ -126,7 +126,7 @@ These carry over from the source system because they are what makes it trustwort
 | 2026-09-15 | Web app stack is Next.js + Supabase; the choice is delegated to Agent A and is not a user decision. |
 | 2026-09-15 | Web search is allowed but deprioritized — policy-fact verification only, never general research. |
 | 2026-09-15 | Fit dataset stays at the T20; no expansion to LACs or in-state schools for now. |
-| 2026-09-15 | The app is multi-user from the start: three students, separate logins, one student's file per session. Agent collaboration on the codebase is deferred and will be announced. |
+| 2026-09-15 | The app is multi-user from the start: separate logins, one user's file per session. Agent collaboration on the codebase is deferred and will be announced. |
 | 2026-09-15 | Student documents live in Supabase Postgres under RLS, not on disk. No public sign-up; accounts are created in the Supabase dashboard. |
 
 ## 8. Open questions for the user
