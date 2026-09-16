@@ -6,10 +6,11 @@ import type { Attachment, ChatTurn } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-// Vercel function duration: 300s on Hobby, 300s default on Pro (configurable to
-// 800s). 300 is the ceiling that works on both, so it is the default here; raise
-// it with KAPP_MAX_DURATION only on a Pro plan that permits more.
-export const maxDuration = Number(process.env.KAPP_MAX_DURATION) || 300;
+// Vercel function duration: 300s on Hobby, 300s default on Pro (configurable up
+// to 800s). Next.js statically analyses route segment config, so this must be a
+// literal — an expression fails the build with "Unsupported node type". Edit the
+// number directly to raise it on a plan that allows more.
+export const maxDuration = 300;
 
 
 /** Map the SDK's citation union onto our flat shape. Location fields differ
