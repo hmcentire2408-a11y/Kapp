@@ -1,97 +1,20 @@
-import fs from "node:fs";
-import path from "node:path";
-import matter from "gray-matter";
+import corpus from "@/generated/corpus.json";
 import { supabaseServer } from "./supabase/server";
 import type { ContextStatus, Corpus, LoadedDoc } from "./types";
 
-/** Repo root — web/ lives one level down. */
-export const ROOT = path.resolve(process.cwd(), "..");
-
-const PROMPT_PATH = path.join(ROOT, "prompts", "master-prompt.md");
-const FIT_PATH = path.join(ROOT, "data", "school-fit", "school-fit.md");
-
-/** Shared, static corpora — identical for every user, so they cache once. */
-const CORPUS_DIRS: { corpus: Corpus; dir: string; label: string }[] = [
-  { corpus: "library", dir: path.join(ROOT, "corpus", "library"), label: "LIBRARY" },
-  { corpus: "morganton", dir: path.join(ROOT, "corpus", "morganton"), label: "MORGANTON" },
-];
-
-function readIfPresent(p: string): string | null {
-  try {
-    return fs.readFileSync(p, "utf8");
-  } catch {
-    return null;
-  }
-}
-
-function listMarkdown(dir: string): string[] {
-  try {
-    return fs
-      .readdirSync(dir)
-      .filter((f) => f.endsWith(".md") || f.endsWith(".txt"))
-      .sort(); // deterministic — a varying doc order silently breaks the cache
-  } catch {
-    return [];
-  }
-}
-
-function titleFor(file: string, front: Record<string, unknown>): string {
-  const t = front.title;
-  if (typeof t === "string" && t.trim()) return t.trim();
-  return path
-    .basename(file)
-    .replace(/\.(md|txt)$/, "")
-    .replace(/[-_]/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-}
+/**
+ * The shared corpus is baked in at build time by scripts/build-corpus.mjs.
+ * It lives at the repo root, outside web/, so reading it with fs at request
+ * time works locally and fails silently on a host that deploys only web/'s
+ * traced output. A static import ships with the bundle.
+ */
 
 /** Library + Morganton + school fit. Same bytes for all three users. */
 export function loadSharedCorpus(): { docs: LoadedDoc[]; warnings: string[] } {
-  const docs: LoadedDoc[] = [];
-  const warnings: string[] = [];
-
-  for (const { corpus, dir, label } of CORPUS_DIRS) {
-    const files = listMarkdown(dir);
-    if (files.length === 0) {
-      warnings.push(
-        `${label} is empty — ${path.relative(ROOT, dir)} has no documents yet ` +
-          `(TASKS.md B1/B2 are still todo). Kapp runs without it and must say so ` +
-          `rather than reason from memory.`,
-      );
-      continue;
-    }
-    for (const file of files) {
-      const raw = readIfPresent(path.join(dir, file));
-      if (raw === null) continue;
-      const { data, content } = matter(raw);
-      const text = content.trim();
-      docs.push({
-        title: titleFor(file, data),
-        corpus,
-        path: path.relative(ROOT, path.join(dir, file)),
-        text,
-        chars: text.length,
-      });
-    }
-  }
-
-  const fit = readIfPresent(FIT_PATH);
-  if (fit === null) {
-    warnings.push(
-      `School-fit dataset missing at ${path.relative(ROOT, FIT_PATH)}. ` +
-        `Run scripts/build_fit.py. Without it, fit claims must be declined.`,
-    );
-  } else {
-    docs.push({
-      title: "School Fit Dataset",
-      corpus: "school-fit",
-      path: path.relative(ROOT, FIT_PATH),
-      text: fit.trim(),
-      chars: fit.trim().length,
-    });
-  }
-
-  return { docs, warnings };
+  return {
+    docs: corpus.docs as LoadedDoc[],
+    warnings: [...corpus.warnings],
+  };
 }
 
 /**
@@ -109,9 +32,9 @@ export async function loadContext(
   const { docs, warnings } = loadSharedCorpus();
   const errors: string[] = [];
 
-  if (readIfPresent(PROMPT_PATH) === null) {
+  if (!corpus.systemPrompt) {
     errors.push(
-      `Master prompt not found at ${path.relative(ROOT, PROMPT_PATH)}. Kapp cannot run without it.`,
+      "Master prompt is empty in the generated corpus. Re-run `node scripts/build-corpus.mjs`.",
     );
   }
 
@@ -144,7 +67,7 @@ export async function loadContext(
   }
 
   return {
-    systemPromptChars: readIfPresent(PROMPT_PATH)?.length ?? 0,
+    systemPromptChars: corpus.systemPrompt.length,
     docs,
     student: displayName,
     warnings,
@@ -158,7 +81,7 @@ export async function loadContext(
  * Anything varying per request here would destroy caching entirely.
  */
 export function buildSystemPrompt(studentName: string): string {
-  const raw = readIfPresent(PROMPT_PATH) ?? "";
+  const raw = corpus.systemPrompt;
   const today = new Date().toISOString().slice(0, 10);
   return raw.replaceAll("{{TODAY}}", today).replaceAll("{{STUDENT_NAME}}", studentName);
 }
