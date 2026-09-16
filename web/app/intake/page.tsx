@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Nav from "@/components/Nav";
 import {
@@ -13,16 +13,50 @@ import {
 } from "@/lib/intake";
 
 const STEPS = ["Academics", "Activities", "Honors", "Recommenders", "Context", "Review"];
+const DRAFT_KEY = "kapp.intake.draft";
 
 export default function IntakePage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [d, setD] = useState<IntakeData>(EMPTY_INTAKE);
+  const [restored, setRestored] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const set = <K extends keyof IntakeData>(k: K, v: IntakeData[K]) =>
     setD((x) => ({ ...x, [k]: v }));
+
+  // Draft autosave. The wizard is long enough that losing it to a closed tab is
+  // a real cost. This is a per-browser convenience only — the file of record is
+  // the database, and nothing here is shared or readable by anyone else.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (raw) {
+        setD({ ...EMPTY_INTAKE, ...JSON.parse(raw) });
+        setRestored(true);
+      }
+    } catch {
+      // Private window, blocked storage — the wizard still works, just without
+      // a draft.
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(d));
+    } catch {
+      /* ignore */
+    }
+  }, [d]);
+
+  function clearDraft() {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {
+      /* ignore */
+    }
+  }
 
   const docs = useMemo(() => renderIntake(d), [d]);
 
@@ -33,7 +67,7 @@ export default function IntakePage() {
       const r = await fetch("/api/documents", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(doc),
+        body: JSON.stringify({ ...doc, replaceByTitle: true }),
       });
       const j = await r.json();
       if (j.error) {
@@ -42,6 +76,7 @@ export default function IntakePage() {
         return;
       }
     }
+    clearDraft();
     router.push("/documents");
   }
 
@@ -71,6 +106,24 @@ export default function IntakePage() {
         field blank and Kapp treats it as not yet known, which is different from
         knowing there is nothing there. Everything saves to your documents.
       </p>
+
+      {restored && (
+        <div className="note warn" style={{ marginBottom: 16 }}>
+          Restored an unsaved draft from this browser. It is not in your file
+          until you save it on the Review step.{" "}
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              clearDraft();
+              setD(EMPTY_INTAKE);
+              setRestored(false);
+            }}
+          >
+            Start over
+          </a>
+        </div>
+      )}
 
       <div className="steps">
         {STEPS.map((s, i) => (
@@ -251,7 +304,8 @@ export default function IntakePage() {
           <p className="lede small">
             {docs.length === 0
               ? "Nothing filled in yet — go back and add something."
-              : `${docs.length} document${docs.length === 1 ? "" : "s"} will be saved to your file.`}
+              : `${docs.length} document${docs.length === 1 ? "" : "s"} will be saved to your file. ` +
+                "Re-running the intake revises these by title rather than adding duplicates."}
           </p>
           {docs.map((doc) => (
             <details className="revdoc" key={doc.title}>
