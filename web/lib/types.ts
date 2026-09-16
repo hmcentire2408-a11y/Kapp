@@ -75,6 +75,17 @@ export interface UiMessage {
   error?: string;
 }
 
+/**
+ * A document dropped into the chat. `persist: false` means it is used for this
+ * request only and is never written to the database — the user said "just for
+ * now", so we do not quietly keep it.
+ */
+export interface Attachment {
+  title: string;
+  classification: Classification;
+  body: string;
+}
+
 /** Wire format for /api/chat — history we replay to the model. */
 export interface ChatTurn {
   role: UiRole;

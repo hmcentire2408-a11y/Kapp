@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { buildSystemPrompt, loadContext } from "./context";
-import type { ChatTurn, ContextStatus, LoadedDoc } from "./types";
+import type { Attachment, ChatTurn, ContextStatus, LoadedDoc } from "./types";
 
 export const MODEL = process.env.KAPP_MODEL?.trim() || "claude-opus-5";
 
@@ -64,6 +64,7 @@ export async function buildRequest(
   history: ChatTurn[],
   userId: string,
   displayName: string,
+  attachments: Attachment[] = [],
 ): Promise<{
   status: ContextStatus;
   params: Anthropic.Beta.MessageCreateParamsStreaming;
@@ -84,6 +85,19 @@ export async function buildRequest(
   studentDocs.forEach((d, i) =>
     blocks.push(docBlock(d, i === studentDocs.length - 1)),
   );
+
+  // Documents dropped into this conversation but not saved. They are volatile,
+  // so they go AFTER the last cache breakpoint — placing them earlier would
+  // invalidate the whole cached prefix on every message.
+  for (const a of attachments) {
+    blocks.push({
+      type: "document",
+      source: { type: "text", media_type: "text/plain", data: a.body },
+      title: a.title,
+      context: `STUDENT document, attached to this conversation only and not saved. Classification: ${a.classification}.`,
+      citations: { enabled: true },
+    } as Anthropic.Beta.BetaContentBlockParam);
+  }
 
   // Tell the model plainly what it is missing, so it can say so instead of
   // filling the gap from memory.

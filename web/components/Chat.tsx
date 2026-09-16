@@ -2,7 +2,16 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import ContextPanel, { type ContextInfo } from "./ContextPanel";
-import type { AssistantSegment, ChatTurn, Citation, UiMessage } from "@/lib/types";
+import DropModal, { type PendingDrop } from "./DropModal";
+import type {
+  AssistantSegment,
+  Attachment,
+  ChatTurn,
+  Citation,
+  UiMessage,
+} from "@/lib/types";
+
+const TEXT_EXT = /\.(md|markdown|txt|text|csv|json)$/i;
 
 function uid() {
   return Math.random().toString(36).slice(2, 10);
@@ -61,6 +70,11 @@ export default function Chat() {
   const [messages, setMessages] = useState<UiMessage[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [drop, setDrop] = useState<PendingDrop | null>(null);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [dragging, setDragging] = useState(false);
+  const [dropError, setDropError] = useState<string | null>(null);
+  const dragDepth = useRef(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
 
@@ -120,7 +134,7 @@ export default function Chat() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ history }),
+        body: JSON.stringify({ history, attachments }),
       });
 
       if (!res.ok || !res.body) {
@@ -189,14 +203,85 @@ export default function Chat() {
       setBusy(false);
       taRef.current?.focus();
     }
-  }, [input, busy, messages]);
+    // Conversation-only attachments are spent once they have been sent.
+    setAttachments([]);
+  }, [input, busy, messages, attachments]);
+
+  async function readDropped(files: FileList) {
+    setDropError(null);
+    const f = files[0];
+    if (!f) return;
+    if (files.length > 1) {
+      setDropError("One file at a time — dropping the first.");
+    }
+    if (!TEXT_EXT.test(f.name)) {
+      setDropError(
+        `${f.name} is not a text file. Markdown, .txt, .csv and .json work; PDFs and images are not supported yet — paste the text instead.`,
+      );
+      return;
+    }
+    if (f.size > 2_000_000) {
+      setDropError(`${f.name} is ${(f.size / 1e6).toFixed(1)}MB. Keep documents under 2MB.`);
+      return;
+    }
+    setDrop({ name: f.name, body: await f.text() });
+  }
+
+  async function onAttach(a: Attachment, persist: boolean) {
+    setDrop(null);
+    if (persist) {
+      const r = await fetch("/api/documents", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(a),
+      });
+      const j = await r.json();
+      if (j.error) {
+        setDropError(j.error);
+        return;
+      }
+      // Saved documents load from the database, so refresh the panel rather
+      // than also attaching a duplicate copy to this request.
+      const ctx = await fetch("/api/context").then((x) => x.json());
+      setInfo(ctx);
+    } else {
+      setAttachments((list) => [...list, a]);
+    }
+  }
 
   const blocked = (info?.errors.length ?? 0) > 0;
 
   return (
     <div className="shell">
       <ContextPanel info={info} />
-      <main className="main">
+      <main
+        className={`main${dragging ? " dragging" : ""}`}
+        onDragEnter={(e) => {
+          e.preventDefault();
+          dragDepth.current += 1;
+          if (e.dataTransfer.types.includes("Files")) setDragging(true);
+        }}
+        onDragOver={(e) => e.preventDefault()}
+        onDragLeave={(e) => {
+          e.preventDefault();
+          dragDepth.current -= 1;
+          if (dragDepth.current <= 0) setDragging(false);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          dragDepth.current = 0;
+          setDragging(false);
+          void readDropped(e.dataTransfer.files);
+        }}
+      >
+        {dragging && (
+          <div className="drop-overlay">
+            <div>
+              <strong>Drop a document</strong>
+              <span>Markdown, .txt, .csv or .json</span>
+            </div>
+          </div>
+        )}
         <div className="scroll" ref={scrollRef}>
           <div className="thread">
             {messages.length === 0 && (
@@ -254,6 +339,23 @@ export default function Chat() {
         </div>
 
         <div className="composer">
+          {(attachments.length > 0 || dropError) && (
+            <div className="chips">
+              {attachments.map((a, i) => (
+                <span className="chip" key={i}>
+                  {a.title}
+                  <em>{a.classification} · this conversation only</em>
+                  <button
+                    onClick={() => setAttachments((l) => l.filter((_, j) => j !== i))}
+                    title="Remove"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+              {dropError && <span className="chip bad">{dropError}</span>}
+            </div>
+          )}
           <div className="inner">
             <textarea
               ref={taRef}
@@ -279,9 +381,15 @@ export default function Chat() {
               {busy ? "…" : "Send"}
             </button>
           </div>
-          <div className="hint">⌘↵ to send · one student per session</div>
+          <div className="hint">
+            ⌘↵ to send · drag a document anywhere here to attach it
+          </div>
         </div>
       </main>
+
+      {drop && (
+        <DropModal drop={drop} onCancel={() => setDrop(null)} onAttach={onAttach} />
+      )}
     </div>
   );
 }

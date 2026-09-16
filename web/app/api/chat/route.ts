@@ -2,7 +2,7 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { NextRequest } from "next/server";
 import { buildRequest, client } from "@/lib/anthropic";
 import { displayNameFor, requireUser } from "@/lib/supabase/server";
-import type { ChatTurn } from "@/lib/types";
+import type { Attachment, ChatTurn } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,9 +45,11 @@ export async function POST(req: NextRequest) {
   }
 
   let history: ChatTurn[];
+  let attachments: Attachment[] = [];
   try {
     const body = await req.json();
     history = body.history;
+    attachments = Array.isArray(body.attachments) ? body.attachments : [];
     if (!Array.isArray(history) || history.length === 0) {
       throw new Error("history must be a non-empty array");
     }
@@ -60,7 +62,12 @@ export async function POST(req: NextRequest) {
 
   let params;
   try {
-    ({ params } = await buildRequest(history, user.id, await displayNameFor(user.id)));
+    ({ params } = await buildRequest(
+      history,
+      user.id,
+      await displayNameFor(user.id),
+      attachments,
+    ));
   } catch (err) {
     return new Response(
       JSON.stringify({ error: (err as Error).message }),
