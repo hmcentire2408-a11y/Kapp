@@ -19,6 +19,9 @@ export default function Nav() {
       <Link href="/" className={path === "/" ? "on" : ""}>
         Evaluate
       </Link>
+      <Link href="/intake" className={path.startsWith("/intake") ? "on" : ""}>
+        Intake
+      </Link>
       <Link href="/documents" className={path.startsWith("/documents") ? "on" : ""}>
         Documents
       </Link>

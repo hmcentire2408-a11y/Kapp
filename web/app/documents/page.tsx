@@ -94,7 +94,8 @@ export default function DocumentsPage() {
       ))}
       {docs.length === 0 && (
         <p className="lede" style={{ marginBottom: 0 }}>
-          Nothing uploaded yet.
+          Nothing uploaded yet. <a href="/intake">Run the intake</a> to build your
+          file from scratch, or paste a document below.
         </p>
       )}
 
