@@ -6,10 +6,10 @@ import type { Attachment, ChatTurn } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-// Vercel caps this per plan: 60s on Hobby, 800s on Pro. Declaring more than the
-// plan allows fails the build, so default to the value that works everywhere and
-// raise it with KAPP_MAX_DURATION on a plan that permits it.
-export const maxDuration = Number(process.env.KAPP_MAX_DURATION) || 60;
+// Vercel function duration: 300s on Hobby, 300s default on Pro (configurable to
+// 800s). 300 is the ceiling that works on both, so it is the default here; raise
+// it with KAPP_MAX_DURATION only on a Pro plan that permits more.
+export const maxDuration = Number(process.env.KAPP_MAX_DURATION) || 300;
 
 
 /** Map the SDK's citation union onto our flat shape. Location fields differ
